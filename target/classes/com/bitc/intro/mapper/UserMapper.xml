@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bitc.intro.mapper.UserMapper">
+	
+	<insert id="insert">
+		INSERT INTO user (id, username, password, email, age, gender, auth) 
+		VALUES (#{id}, #{username}, #{password}, #{email}, #{age}, #{gender}, #{auth})
+	</insert>
+
+	<select id="getCountById" resultType="int">
+		SELECT COUNT(*) FROM user WHERE username=#{username}
+	</select>
+	
+	<select id="getUserById" resultType="com.bitc.intro.domain.User">
+		SELECT * FROM user WHERE username=#{username}
+	</select>
+	
+	<select id="getUsers" resultType="com.bitc.intro.domain.User">
+		SELECT * FROM user
+	</select>
+	
+	<delete id="deleteById">
+		DELETE FROM user WHERE username=#{username}
+	</delete>
+	
+	<update id="updateUserById">
+		UPDATE user 
+		SET password=#{password}, email=#{email}, age=#{age}, gender=#{gender}
+		WHERE username=#{username}
+	</update>
+	
+	<!-- 좋아요 목록 보기 -->
+	<select id="getLoveList" resultType="com.bitc.intro.domain.Restaurant">
+		SELECT distinct *
+		FROM restaurant,
+		(SELECT rest_id
+		FROM user, love
+		WHERE user_id=#{id}) newtable
+		WHERE rest_id=rid
+	</select>
+	
+	<!-- 좋아요 기능 -->
+	<insert id="pressLove">
+		INSERT INTO love (user_id, rest_id)
+		VALUES (#{param1}, #{param2})
+	</insert>
+	
+	<!-- 좋아요 누른 내역이 있는지 확인 -->
+	<select id="checkLoveIsPressed" resultType="int">
+		SELECT COUNT(*)
+		FROM love
+		WHERE user_id=#{param1} AND rest_id=#{param2}
+	</select>
+	
+	<!-- 좋아요 취소하기 -->
+	<delete id="cancleLove">
+		DELETE
+		FROM love
+		WHERE user_id=#{param1} AND rest_id=#{param2}
+	</delete>
+	
+	<select id="ageReco" resultType="integer">
+		SELECT rest_id
+		FROM love , user
+		WHERE id = user_id
+		and age = #{age}
+	</select>
+	
+</mapper>
+

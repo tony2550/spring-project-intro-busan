@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bitc.intro.mapper.QnaMapper">
+
+<insert id="insert">
+		<![CDATA[
+			INSERT INTO qna (id, title, content, user_id, regdate, readcount) 
+			VALUES (#{id}, #{title}, #{content}, #{userId}, #{regDate}, #{readcount})
+		]]>
+	</insert>
+	
+	<select id="getTotalCount" resultType="int">
+		<![CDATA[
+			SELECT COUNT(*) 
+			FROM qna
+		]]>
+	</select>
+	
+	<select id="nextQnaNum" resultType="int">
+		<![CDATA[
+			SELECT IFNULL(MAX(id),0) + 1 AS qnum 
+			FROM qna
+
+		]]>
+	</select>
+	
+	
+	<update id="updateReadcount">
+		<![CDATA[
+			UPDATE qna
+			SET readcount = readcount + 1
+			WHERE id = #{id}
+		]]>
+	</update>
+	
+	
+	<select id="getQna" resultType="com.bitc.intro.domain.Qna">
+		<![CDATA[
+			SELECT * 
+			FROM qna 
+			WHERE id = #{id}
+		]]>
+	</select>
+	
+	
+	<select id="getQnas" resultType="com.bitc.intro.domain.Qna">
+		<![CDATA[
+			SELECT * FROM qna ORDER BY id DESC
+		]]>
+	</select>
+	
+	
+	<select id="getListWithPaging" resultType="com.bitc.intro.domain.Qna">
+		<![CDATA[
+		SELECT * FROM qna ORDER BY id DESC LIMIT #{pageStart} , #{amount}
+		]]>
+	</select>
+	
+	
+	<delete id="deleteQna">
+		<![CDATA[
+			DELETE 
+			FROM qna
+			WHERE id = #{id}
+		]]>
+	</delete>
+	
+	<delete id="deleteAll">
+		<![CDATA[
+			DELETE FROM qna
+		]]>
+	</delete>
+	
+	
+	<delete id="deleteQnaById">
+		DELETE FROM qna WHERE id = #{id}
+	</delete>
+	
+	<!-- 업데이트 이름, 제목, 부제목 ,주소, 전번, 홈페이지, 교통정보, 운영일, 휴무일, 운영시간, 요금, 편의시설, 사진, 상세-->
+	<update id="updateQna">
+		UPDATE qna
+		SET title=#{title}, content=#{content}
+		WHERE id=#{id}
+	</update>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

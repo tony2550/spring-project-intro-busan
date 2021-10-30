@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bitc.intro.mapper.AttachMapper">
+			
+	<insert id="insertAttach">
+		INSERT INTO attach (uuid, uploadpath, filename, thumb, rest_id)
+		VALUES (#{uuid}, #{uploadpath}, #{filename}, #{thumb}, #{restId})
+	</insert>
+	
+	<select id="getAttachesByRid" resultType="com.bitc.intro.domain.AttachVO">
+		SELECT * FROM attach
+		WHERE rest_id = #{rid}
+	</select>
+	
+	<delete id="deletAllAttach">
+		DELETE FROM attach where rest_id = #{rid}
+	</delete>
+	
+</mapper>

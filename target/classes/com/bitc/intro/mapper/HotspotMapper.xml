@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bitc.intro.mapper.HotspotMapper">
+
+<resultMap type="com.bitc.intro.domain.Hotspot" id="Hotspot">
+	<id property="id" column="id" />
+	<result property="name" column="name" />
+	<result property="district" column="district" />
+	<result property="title" column="title" />
+	<result property="subTitle" column="subtitle" />
+	<result property="address" column="address" />
+	<result property="phoneNum" column="phonenum" />
+	<result property="url" column="url" />
+	<result property="traffic" column="traffic" />
+	<result property="day" column="day" />
+	<result property="holiday" column="holiday" />
+	<result property="time" column="time" />
+	<result property="fee" column="fee" />
+	<result property="img" column="img" />
+	<result property="conv" column="conv" />
+	<result property="content" column="content" />
+	<collection property="restaurantList" resultMap="restaurantMap" />
+</resultMap>
+
+<resultMap type="com.bitc.intro.domain.Restaurant" id="restaurantMap">
+	<result property="rid" column="rid" />
+	<result property="name" column="name" />
+	<result property="district" column="district" />
+	<result property="address" column="address" />
+	<result property="phoneNum" column="phonenum" />
+	<result property="url" column="url" />
+	<result property="time" column="time" />
+	<result property="mainMenu" column="mainmenu" />
+	<result property="img" column="img" />
+	<result property="content" column="content" />
+	<result property="loveCount" column="love_count" />
+</resultMap>
+	
+	<insert id="insert">
+		INSERT INTO hotspot (name , district , title , subtitle , address , phonenum , url , traffic , day , holiday , time , fee , conv , img , content) 
+		VALUES (#{name} , #{district} , #{title} , #{subTitle} , #{address} , #{phoneNum} , #{url} , #{traffic} , #{day} , #{holiday} , #{time} , #{fee} , #{conv} , #{img} , #{content})
+	</insert>
+	
+	<!-- 관광지 1건 찾기 -->
+	<select id="findById" resultType="com.bitc.intro.domain.Hotspot">
+		SELECT * FROM hotspot WHERE id = #{id}
+	</select>
+	
+	<!-- 관광지 + 썸네일 전체 찾 -->
+	<select id="getHotspots" resultType="com.bitc.intro.domain.Hotspot"> 
+		SELECT * FROM hotspot h
+		LEFT JOIN attach a
+		ON h.id = a.hid
+		WHERE a.thumb = 1
+		ORDER BY h.id DESC #{pageStart} , #{amount}
+	</select>
+	
+	<!-- SELECT * FROM hotspot ORDER BY id DESC LIMIT #{pageStart} , #{amount} -->
+	<select id="getHotspotsWithPaging" resultType="com.bitc.intro.domain.Hotspot">
+		SELECT * FROM hotspot
+		ORDER BY id DESC LIMIT #{pageStart} , #{amount}
+	</select>
+	
+	<select id="getTotalCount" resultType="int">
+		SELECT COUNT(*) FROM hotspot
+	</select>
+	
+	<delete id="deleteHotspotById">
+		DELETE FROM hotspot WHERE id = #{id}
+	</delete>
+	
+	<!-- 업데이트 이름, 제목, 부제목 ,주소, 전번, 홈페이지, 교통정보, 운영일, 휴무일, 운영시간, 요금, 편의시설, 사진, 상세-->
+	<update id="updateHotspotById">
+		UPDATE hotspot
+		SET name=#{name} , title=#{title} , subtitle=#{subtitle} , address=#{address} , phonenum=#{phonenum} , url=#{url} , traffic=#{traffic} , day=#{day} , holiday=#{holiday} , time=#{time} , fee=#{fee} , conv=#{conv} , img=#{img} , content=#{content}
+		WHERE id=#{id}
+	</update>
+	
+	<select id="getRestsWithPaging" resultMap="Hotspot">
+		select h.id , h.district , r.rid, r.name , r.mainmenu, r.img, r.love_count
+		FROM hotspot h
+        left outer join restaurant r
+		on h.district = r.district
+        where h.id = #{param1} LIMIT #{param2.pageStart} , #{param2.amount}
+	</select>
+	
+	<!-- parameterType="com.bitc.intro.domain.HotspotDetailVO" -->
+	
+	<select id="getRestaurantsBySpotIdWithPage" resultType="com.bitc.intro.domain.Hotspot">
+		SELECT *
+		FROM (select hotspot.id hid , restaurant.id rid , restaurant.img rimg , restaurant.name rname
+		FROM hotspot inner join restaurant
+		WHERE hotspot.district = restaurant.district) newtable
+		WHERE newtable.hid = #{id} LIMIT #{startPage} , #{amount}
+	</select>
+	
+	<!-- 전체 글 개수 -->
+	<select id="getTotalCountBySpotId" resultType="int">
+		SELECT COUNT(*)
+		FROM (select hotspot.id hid , restaurant.rid rid , restaurant.img rimg , restaurant.name rname , restaurant.district district
+		FROM hotspot inner join restaurant
+		WHERE hotspot.district = restaurant.district) newtable
+		WHERE newtable.hid = #{id}
+	</select>
+	
+	<select id="nextHotspotId" resultType="int">
+		SELECT Max(id)+1 FROM hotspot
+	</select>
+	
+	<!-- 검색 조건문 -->
+    <!-- <sql id="criteria">
+        <trim prefix="AND (" suffix=")" prefixOverrides="OR">
+            <foreach collection="typeArr" item="type">
+                <trim prefix="OR">
+                    <choose>
+                        <when test="type == 'T'.toString()">
+                            title like '%'||#{keyword}||'%' 
+                        </when>
+                        <when test="type == 'C'.toString()">
+                            content like '%'||#{keyword}||'%' 
+                        </when>
+                        <when test="type == 'W'.toString()">
+                            writer like '%'||#{keyword}||'%' 
+                        </when>
+                    </choose>
+                </trim>
+            </foreach>
+        </trim>
+    
+    </sql>
+ 
+    게시물 목록(페이징)
+    <select id="getListPaging" resultType="com.vam.model.BoardVO">
+    
+    <![CDATA[
+        
+        select bno, title, content, writer, regdate, updatedate from(
+        
+                select /*+INDEX_DESC(vam_board pk_board) */ rownum  as rn, bno, title, content, writer, regdate, updatedate
+                  
+                from vam_board where rownum <= #{pageNum} * #{amount} 
+    ]]>            
+                <if test="keyword != null">
+                    <include refid="criteria"></include> 
+                </if>
+    
+    <![CDATA[
+                    
+                )
+                    
+        where rn > (#{pageNum} -1) * #{amount}
+    
+    ]]>
+    
+    </select>
+ 
+ 
+    게시물 총 개숫
+    <select id="getTotal" resultType="int">
+    
+        select count(*) from hotspot
+        
+        <if test="keyword != null">
+        
+            where id > 0 <include refid="criteria"></include>
+        
+        </if>
+    
+    </select>   -->
+	
+
+</mapper>

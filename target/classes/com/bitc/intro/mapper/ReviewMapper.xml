@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.bitc.intro.mapper.ReviewMapper">
+
+	<!-- 댓글추가 -->
+  <insert id="insert">
+  insert into review(grade, content , username , rest_id , regdate)
+  values(#{grade}, #{content} , #{username} , #{restId} , now())
+  </insert>
+  
+  <!-- 레스토랑 ID로 관련 댓글 가져오기 -->
+  <select id="getList" resultType="com.bitc.intro.domain.Review">
+  	select * from review where rest_id = #{restId}
+  </select>
+  
+  <!-- 댓글삭제 -->
+  <delete id="delete">
+  delete from review where id=#{id}
+  </delete>
+  
+  <!-- 댓글 한건 찾기 -->
+  <select id="findByNum" resultType="com.bitc.intro.domain.Review">
+  select * from review where id=#{id}
+  </select>
+  
+</mapper>

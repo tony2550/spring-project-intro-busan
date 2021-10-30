@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bitc.intro.mapper.RestaurantMapper">
+	<insert id="insert">
+		INSERT INTO restaurant (name , district , address , phonenum , url , time , mainmenu , img , content)
+		VALUES (#{name} , #{district} , #{address} , #{phoneNum} , #{url} , #{time}, #{mainMenu} , #{img} , #{content})
+	</insert>
+	
+	<select id="getRestaurantById" resultType="com.bitc.intro.domain.Restaurant">
+		SELECT * FROM restaurant WHERE rid = #{rid}
+	</select>
+
+	<select id="getRestaurantsWithPaging" resultType="com.bitc.intro.domain.Restaurant">
+		SELECT *
+		FROM restaurant
+		ORDER BY rid DESC LIMIT #{pageStart} , #{amount}
+	</select>
+	
+	<select id="getTotalCount" resultType="int">
+		SELECT COUNT(*) FROM restaurant
+	</select>
+
+	<delete id="deleteById">
+		DELETE FROM restaurant WHERE rid = #{rid}
+	</delete>
+
+	<!-- 업데이트 이름, 주소, 전번, 홈페이지, 메뉴, 사진, 상세 / spot_id는 고정 -->
+	<update id="updateRestaurantById">
+		UPDATE restaurant 
+		SET name=#{name} , address=#{address} , phonenum=#{phoneNum} , url=#{url} , time=#{time} , mainmenu=#{mainMenu} , img=#{img} , content=#{content}
+		WHERE rid=#{rid}
+	</update>
+	
+	<!-- 관광지 주변 식당 별점 추가해야함 -->
+	<select id="getRestaurantsBySpotIdWithPage" resultType="com.bitc.intro.domain.Restaurant">
+		SELECT *
+		FROM (select hotspot.id hid , restaurant.id rid , restaurant.img rimg , restaurant.name rname
+		FROM hotspot inner join restaurant
+		WHERE hotspot.district = restaurant.district) newtable
+		WHERE newtable.hid = #{hotspot.id} LiMIT #{startPage} , #{amount}
+	</select>
+	
+	<!-- 전체 글 개수 -->
+	<select id="getTotalCountBySpotId" resultType="int">
+		SELECT COUNT(*)
+		FROM (select hotspot.id hid , restaurant.id rid , restaurant.img rimg , restaurant.name rname
+		FROM hotspot inner join restaurant
+		WHERE hotspot.district = restaurant.district) newtable
+		WHERE newtable.hid = #{id}
+	</select>
+	
+	<!-- love table에서 식당 좋아요수 조회 -->
+	<select id="getLoveCount" resultType="int">
+		SELECT COUNT(*)
+		FROM love
+		WHERE rest_id=#{rid}
+	</select>
+	
+	<!-- 추천 하는 연령대 -->
+	<select id="getRecommendationsByage" resultType="Integer">
+		SELECT age
+		FROM 
+		(SELECT age, MAX(maxCnt) FROM
+		(SELECT age, COUNT(*) AS maxCnt
+		FROM user, love
+		WHERE id = user_id
+		AND rest_id=#{rid}
+		GROUP BY age
+		ORDER BY COUNT(*) DESC) newtable
+		) newtable2
+	</select>
+	
+	
+	<!-- 추천 하는 성별 -->
+	<select id="getRecommendationsByGender" resultType="String">
+		SELECT gender
+		FROM 
+		(SELECT gender, MAX(maxCnt) FROM
+		(SELECT gender, COUNT(*) AS maxCnt
+		FROM user, love
+		WHERE id = user_id
+		AND rest_id=#{rid}
+		GROUP BY gender
+		ORDER BY COUNT(*) DESC) newtable
+		) newtable2
+	</select>
+
+	<!-- 식당 테이블에서 loveCnt 1 증가 -->
+	<update id="increaseLove">
+		UPDATE restaurant
+		SET love_count = love_count + 1
+		WHERE rid = #{rid}
+	</update>
+	
+	<!-- 식당 테이블에서 loveCnt 1 감소 -->
+	<update id="decreaseLove">
+		UPDATE restaurant
+		SET love_count = love_count - 1
+		WHERE rid = #{rid}
+	</update>
+	
+	<!-- 메인화면 추천 -->
+	
+	<select id="getdistrictsByloveCounts" resultType="String">
+		SELECT district
+		FROM restaurant, love
+		WHERE rid = rest_id
+		GROUP BY district
+		ORDER BY COUNT(*) DESC LIMIT 0 , 6
+	</select>
+	
+	<select id="getrestsloveCounts" resultType="Integer">
+		SELECT COUNT(*)
+		FROM restaurant, love
+		WHERE rid = rest_id 
+		GROUP BY district
+		ORDER BY COUNT(*) DESC LIMIT 0 , 6
+	</select>
+	
+	<select id="getrestsBydistrict" resultType="com.bitc.intro.domain.Restaurant">
+		SELECT *
+		FROM restaurant
+		WHERE district LIKE CONCAT('%',#{district},'%')
+	</select>
+	
+	<select id="getrestsBymainmenu" resultType="com.bitc.intro.domain.Restaurant">
+		SELECT *
+		FROM restaurant
+		WHERE mainmenu LIKE CONCAT('%','아메리카노','%')
+		OR mainmenu LIKE CONCAT('%','라떼','%')
+	</select>
+	
+	<select id="nextRid" resultType="int">
+		SELECT Max(rid)+1 FROM restaurant
+	</select>
+	
+</mapper>
